@@ -39,11 +39,18 @@ static DEFAULT_COLORS : [&'static str; PALETTE_SIZE] = [
     "5555ff", "ff55ff", "55ffff", "ffffff"
 ];
 
-static SOLARIZED_COLORS : [&'static str; PALETTE_SIZE] = [
+static SOLARIZED_COLORS_DARK : [&'static str; PALETTE_SIZE] = [
     "002b36", "dc322f", "859900", "b58900",
     "268bd2", "d33682", "2aa198", "eee8d5",
     "002b36", "cb4b16", "586e75", "657b83",
     "839496", "6c71c4", "93a1a1", "fdf6e3",
+];
+
+static SOLARIZED_COLORS_LIGHT : [&'static str; PALETTE_SIZE] = [
+    "eee8d5", "dc322f", "859900", "b58900",
+    "268bd2", "d33682", "2aa198", "073642",
+    "fdf6e3", "cb4b16", "93a1a1", "839496",
+    "657b83", "6c71c4", "586e75", "002b36",
 ];
 
 /*
@@ -249,8 +256,9 @@ fn
 main ()
 {
     let color_set : [[&str; 7]; PALETTE_SIZE];
-    let mut pal : Palette = Palette::new(&DEFAULT_COLORS);
-    //let mut pal : Palette = Palette::new(&SOLARIZED_COLORS);
+    //let mut pal : Palette = Palette::new(&DEFAULT_COLORS);
+    let mut pal : Palette = Palette::new(&SOLARIZED_COLORS_DARK);
+    //let mut pal : Palette = Palette::new(&SOLARIZED_COLORS_LIGHT);
     println!("{}", pal);
     //println!("{:?}", pal);
     let fd = get_console_fd(None).unwrap();
