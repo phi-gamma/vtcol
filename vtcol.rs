@@ -229,11 +229,28 @@ get_console_fd
 }
 
 fn
+write_to_term (fd : fd_t, buf : &str)
+{
+    let len = buf.len() as u32;
+    let raw = std::ffi::CString::from_slice(buf.as_bytes());
+    unsafe { libc::write(fd, raw.as_ptr() as *const libc::c_void, len) };
+}
+
+fn
+clear_term (fd : fd_t)
+{
+    let clear  : &str = "\x1b[2J";
+    let cursor : &str = "\x1b[1;1H";
+    write_to_term(fd, clear);
+    write_to_term(fd, cursor);
+}
+
+fn
 main ()
 {
     let color_set : [[&str; 7]; PALETTE_SIZE];
-    //let mut pal : Palette = Palette::new(&DEFAULT_COLORS);
-    let mut pal : Palette = Palette::new(&SOLARIZED_COLORS);
+    let mut pal : Palette = Palette::new(&DEFAULT_COLORS);
+    //let mut pal : Palette = Palette::new(&SOLARIZED_COLORS);
     println!("{}", pal);
     //println!("{:?}", pal);
     let fd = get_console_fd(None).unwrap();
@@ -242,5 +259,6 @@ main ()
     if unsafe { ioctl(fd, PIO_CMAP, std::mem::transmute(&mut pal)) } < 0 {
         panic!("PIO_CMAP, ioctl failed to insert new palette")
     }
+    clear_term(fd);
 }
 
