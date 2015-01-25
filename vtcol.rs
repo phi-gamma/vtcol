@@ -21,6 +21,7 @@ impl Job {
         -> Job
     {
         let argv = std::os::args();
+        let this = argv[0].clone();
         let opts = &[
             getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
             getopts::optflag("h", "help", "print this message")
@@ -31,19 +32,33 @@ impl Job {
             Err(f) => panic!(f.to_string())
         };
         let scheme = match matches.opt_str("s") {
-            None => Scheme::Default,
+            None => {
+                Job::usage(&this, opts);
+                panic!("no color scheme given, aborting")
+            },
             Some (name) => {
                 match name.as_slice() {
                     "solarized" | "solarized_dark" | "sd" => Scheme::SolarizedDark,
                     "solarized_light" | "sl" => Scheme::SolarizedLight,
-                    _ => Scheme::Default
+                    "default" | "normal" => Scheme::Default,
+                    garbage => {
+                        Job::usage(&this, opts);
+                        panic!("unknown color scheme “{}”, aborting", garbage);
+                    }
                 }
             }
         };
         Job {
-            this   : argv[0].clone(),
+            this   : this,
             scheme : scheme
         }
+    }
+
+    fn
+    usage (this : &String, opts: &[getopts::OptGroup])
+    {
+        let brief = format!("usage: {} [options]", this);
+        print!("{}", getopts::usage(brief.as_slice(), opts));
     }
 
 } /* [impl Job] */
