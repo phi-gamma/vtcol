@@ -6,6 +6,8 @@ extern crate getopts;
 #[derive(Show)]
 enum Scheme { Default, SolarizedDark, SolarizedLight }
 
+extern { fn exit (code : libc::c_int) -> !; }
+
 /* struct Job -- Runtime parameters.
  */
 #[derive(Show)]
@@ -24,12 +26,17 @@ impl Job {
         let this = argv[0].clone();
         let opts = &[
             getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
+            getopts::optflag("l", "list", "list available color schemes"),
             getopts::optflag("h", "help", "print this message")
         ];
         let matches = match getopts::getopts(argv.tail(), opts)
         {
             Ok(m) => m,
             Err(f) => panic!(f.to_string())
+        };
+        if matches.opt_present("l") {
+            Job::schemes();
+            unsafe { exit(0) };
         };
         let scheme = match matches.opt_str("s") {
             None => {
@@ -59,6 +66,15 @@ impl Job {
     {
         let brief = format!("usage: {} [options]", this);
         print!("{}", getopts::usage(brief.as_slice(), opts));
+    }
+
+    fn
+    schemes ()
+    {
+        println!("Available color schemes:");
+        println!("      · solarized_dark");
+        println!("      · solarized_light");
+        println!("      · default");
     }
 
 } /* [impl Job] */
