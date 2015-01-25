@@ -13,7 +13,7 @@ extern {
         -> libc::c_int;
 }
 
-type fd_t = libc::c_int;
+type Fd = libc::c_int;
 
 const PALETTE_SIZE  : usize = 16_us;
 const PALETTE_BYTES : usize = PALETTE_SIZE * 3_us; // 16 * sizeof(int)
@@ -22,6 +22,7 @@ const KDGKBTYPE     : libc::c_int  = 0x4b33;     /* kd.h */
 const PIO_CMAP      : libc::c_int  = 0x00004B71; /* kd.h */
 const KB_101        : libc::c_char = 0x0002;     /* kd.h */
 const O_NOCTTY      : libc::c_int  = 0o0400;     /* fcntl.h */
+
 
 static CONSOLE_PATHS : [&'static str; 6] = [
     "/proc/self/fd/0",
@@ -170,7 +171,7 @@ impl std::fmt::Debug for Palette {
 fn
 fd_of_path
     (path : &std::path::Path)
-    -> Option<fd_t>
+    -> Option<Fd>
 {
     let p = std::ffi::CString::from_slice(path.as_vec());
     match unsafe { libc::open(p.as_ptr(), libc::O_RDWR | O_NOCTTY, 0) }
@@ -204,7 +205,7 @@ fd_of_path
 fn
 get_console_fd
     (path : Option<&str>)
-    -> Option<fd_t>
+    -> Option<Fd>
 {
     match path
     {
@@ -236,7 +237,7 @@ get_console_fd
 }
 
 fn
-write_to_term (fd : fd_t, buf : &str)
+write_to_term (fd : Fd, buf : &str)
 {
     let len = buf.len() as u32;
     let raw = std::ffi::CString::from_slice(buf.as_bytes());
@@ -244,7 +245,7 @@ write_to_term (fd : fd_t, buf : &str)
 }
 
 fn
-clear_term (fd : fd_t)
+clear_term (fd : Fd)
 {
     let clear  : &str = "\x1b[2J";
     let cursor : &str = "\x1b[1;1H";
