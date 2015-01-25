@@ -1,4 +1,52 @@
+#![allow(unstable)]
+
 extern crate libc;
+extern crate getopts;
+
+#[derive(Show)]
+enum Scheme { Default, SolarizedDark, SolarizedLight }
+
+/* struct Job -- Runtime parameters.
+ */
+#[derive(Show)]
+struct Job {
+    this   : String, /* argv[0] */
+    scheme : Scheme, /* The color scheme to switch to. */
+}
+
+impl Job {
+
+    pub fn
+    new ()
+        -> Job
+    {
+        let argv = std::os::args();
+        let opts = &[
+            getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
+            getopts::optflag("h", "help", "print this message")
+        ];
+        let matches = match getopts::getopts(argv.tail(), opts)
+        {
+            Ok(m) => m,
+            Err(f) => panic!(f.to_string())
+        };
+        let scheme = match matches.opt_str("s") {
+            None => Scheme::Default,
+            Some (name) => {
+                match name.as_slice() {
+                    "solarized" | "solarized_dark" | "sd" => Scheme::SolarizedDark,
+                    "solarized_light" | "sl" => Scheme::SolarizedLight,
+                    _ => Scheme::Default
+                }
+            }
+        };
+        Job {
+            this   : argv[0].clone(),
+            scheme : scheme
+        }
+    }
+
+} /* [impl Job] */
 
 /* Rust appears to come with two wrappers for ``ioctl(2)``, but neither can be utilized for our
  * purposes. The one in ``sys`` is part of a private (seriously‽) whereas the one in the
@@ -22,7 +70,6 @@ const KDGKBTYPE     : libc::c_int  = 0x4b33;     /* kd.h */
 const PIO_CMAP      : libc::c_int  = 0x00004B71; /* kd.h */
 const KB_101        : libc::c_char = 0x0002;     /* kd.h */
 const O_NOCTTY      : libc::c_int  = 0o0400;     /* fcntl.h */
-
 
 static CONSOLE_PATHS : [&'static str; 6] = [
     "/proc/self/fd/0",
@@ -53,11 +100,6 @@ static SOLARIZED_COLORS_LIGHT : [&'static str; PALETTE_SIZE] = [
     "fdf6e3", "cb4b16", "93a1a1", "839496",
     "657b83", "6c71c4", "586e75", "002b36",
 ];
-
-/*
- * The palette struct is the type expected by ioctl PIO_CMAP
- */
-//struct palette { unsigned char colors[PALETTE_SIZE * 7]; };
 
 pub struct Palette {
     colors : [u8; PALETTE_BYTES]
@@ -256,10 +298,16 @@ clear_term (fd : Fd)
 fn
 main ()
 {
+    let job = Job::new();
+    println!("job parms: {:?}", job);
     let color_set : [[&str; 7]; PALETTE_SIZE];
-    //let mut pal : Palette = Palette::new(&DEFAULT_COLORS);
-    let mut pal : Palette = Palette::new(&SOLARIZED_COLORS_DARK);
-    //let mut pal : Palette = Palette::new(&SOLARIZED_COLORS_LIGHT);
+    let mut pal : Palette = {
+        match job.scheme {
+            Scheme::Default        => Palette::new(&DEFAULT_COLORS),
+            Scheme::SolarizedDark  => Palette::new(&SOLARIZED_COLORS_DARK),
+            Scheme::SolarizedLight => Palette::new(&SOLARIZED_COLORS_LIGHT),
+        }
+    };
     println!("{}", pal);
     //println!("{:?}", pal);
     let fd = get_console_fd(None).unwrap();
@@ -269,5 +317,6 @@ main ()
         panic!("PIO_CMAP, ioctl failed to insert new palette")
     }
     clear_term(fd);
+    println!("terminated from job {:?}", job);
 }
 
