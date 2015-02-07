@@ -6,6 +6,22 @@ extern crate getopts;
 #[derive(Show)]
 enum Scheme { Default, SolarizedDark, SolarizedLight }
 
+impl std::fmt::String for Scheme {
+
+    fn
+    fmt (&self, f : &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        let id : &str = match (*self)
+        {
+            Scheme::Default         => "default",
+            Scheme::SolarizedDark   => "solarized_dark",
+            Scheme::SolarizedLight  => "solarized_light"
+        };
+        write!(f, "{}", id)
+    }
+
+} /* [impl String for Scheme] */
+
 extern { fn exit (code : libc::c_int) -> !; }
 
 /* struct Job -- Runtime parameters.
@@ -26,38 +42,68 @@ impl Job {
         let this = argv[0].clone();
         let opts = &[
             getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
+            getopts::optopt("d", "dump", "dump predefined scheme", "NAME"),
             getopts::optflag("l", "list", "list available color schemes"),
             getopts::optflag("h", "help", "print this message")
         ];
+
         let matches = match getopts::getopts(argv.tail(), opts)
         {
             Ok(m) => m,
             Err(f) => panic!(f.to_string())
         };
+
         if matches.opt_present("l") {
             Job::schemes();
             unsafe { exit(0) };
         };
-        let scheme = match matches.opt_str("s") {
+
+        if matches.opt_present("d")
+        {
+            match matches.opt_str("d") {
+                None =>
+                {
+                    Job::usage(&this, opts);
+                    panic!("no color scheme given, aborting")
+                },
+                Some (name) =>
+                {
+                    let scm = Job::pick_scheme(&name);
+                    Job::dump(scm);
+                    unsafe { exit(0) };
+                }
+            };
+        }
+
+        let scheme = match matches.opt_str("s")
+        {
             None => {
                 Job::usage(&this, opts);
                 panic!("no color scheme given, aborting")
             },
-            Some (name) => {
-                match name.as_slice() {
-                    "solarized" | "solarized_dark" | "sd" => Scheme::SolarizedDark,
-                    "solarized_light" | "sl" => Scheme::SolarizedLight,
-                    "default" | "normal" => Scheme::Default,
-                    garbage => {
-                        Job::usage(&this, opts);
-                        panic!("unknown color scheme “{}”, aborting", garbage);
-                    }
-                }
-            }
+            Some (name) => Job::pick_scheme(&name)
         };
+
         Job {
             this   : this,
             scheme : scheme
+        }
+    }
+
+    fn
+    pick_scheme (name : &String)
+        -> Scheme
+    {
+        match name.as_slice() {
+            "solarized" | "solarized_dark" | "sd"
+                => Scheme::SolarizedDark,
+            "solarized_light" | "sl"
+                => Scheme::SolarizedLight,
+            "default" | "normal"
+                => Scheme::Default,
+            garbage => {
+                panic!("unknown color scheme “{}”, aborting", garbage);
+            }
         }
     }
 
@@ -75,6 +121,24 @@ impl Job {
         println!("      · solarized_dark");
         println!("      · solarized_light");
         println!("      · default");
+    }
+
+    fn
+    dump (scm : Scheme)
+    {
+        println!("Dumping color scheme {}", scm);
+        match scm {
+            Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
+            Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
+            Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT)
+        }
+    }
+
+    fn
+    dump_scheme (colors : &[&str; PALETTE_SIZE])
+    {
+        let pal : Palette = Palette::new(colors);
+        pal.dump()
     }
 
 } /* [impl Job] */
@@ -135,6 +199,28 @@ static SOLARIZED_COLORS_LIGHT : [&'static str; PALETTE_SIZE] = [
 pub struct Palette {
     colors : [u8; PALETTE_BYTES]
 }
+
+impl Palette
+{
+
+    fn
+    dump (&self)
+    {
+        let mut i : usize = 0;
+        let mut buf : [u8; 3] = [ 0u8, 0u8, 0u8 ];
+        for col in self.colors.iter()
+        {
+            let idx : usize = i % 3;
+            buf[idx] = *col;
+            if idx == 2us {
+                println!("[{:02.x}] 0x{:02.X}{:02.X}{:02.X}",
+                         i / 3, buf[0us], buf[1us], buf[2us]);
+            }
+            i = i + 1;
+        }
+    }
+
+} /* [impl Palette] */
 
 fn
 nibble_of_char
