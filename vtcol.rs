@@ -250,7 +250,7 @@ rgb_of_hex_triplet
     let bytes = def.as_bytes();
     let r : u8 = byte_of_hex!(bytes, 0);
     let g : u8 = byte_of_hex!(bytes, 2);
-    let b : u8 = byte_of_hex!(bytes, 3);
+    let b : u8 = byte_of_hex!(bytes, 4);
     (r, g, b)
 }
 
