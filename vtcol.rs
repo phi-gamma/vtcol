@@ -4,6 +4,63 @@ extern crate libc;
 extern crate getopts;
 
 #[derive(Show)]
+enum Color {
+    Black, Red,     Green, Yellow,
+    Blue,  Magenta, Cyan,  White
+}
+
+impl Color {
+
+    fn
+    of_value (val : u8)
+        -> Color
+    {
+        match (val)
+        {
+            0x00_u8 => Color::Black,
+            0x01_u8 => Color::Red,
+            0x02_u8 => Color::Green,
+            0x03_u8 => Color::Yellow,
+            0x04_u8 => Color::Blue,
+            0x05_u8 => Color::Magenta,
+            0x06_u8 => Color::Cyan,
+            0x07_u8 => Color::White,
+
+            0x08_u8 => Color::Black,
+            0x09_u8 => Color::Red,
+            0x0a_u8 => Color::Green,
+            0x0b_u8 => Color::Yellow,
+            0x0c_u8 => Color::Blue,
+            0x0d_u8 => Color::Magenta,
+            0x0e_u8 => Color::Cyan,
+            0x0f_u8 => Color::White,
+
+            _      => panic!("invalid color value: {}", val)
+        }
+    }
+
+    fn
+    to_string
+        (&self)
+        -> String
+    {
+        let id : &str = match (*self)
+        {
+            Color::Black   => "black",
+            Color::Red     => "red",
+            Color::Green   => "green",
+            Color::Yellow  => "yellow",
+            Color::Blue    => "blue",
+            Color::Magenta => "magenta",
+            Color::Cyan    => "cyan",
+            Color::White   => "white",
+        };
+        id.to_string()
+    }
+
+} /* [impl Color] */
+
+#[derive(Show)]
 enum Scheme { Default, SolarizedDark, SolarizedLight }
 
 impl std::fmt::String for Scheme {
@@ -20,7 +77,7 @@ impl std::fmt::String for Scheme {
         write!(f, "{}", id)
     }
 
-} /* [impl String for Scheme] */
+} /* [impl std::fmt::String for Scheme] */
 
 extern { fn exit (code : libc::c_int) -> !; }
 
@@ -206,15 +263,16 @@ impl Palette
     fn
     dump (&self)
     {
-        let mut i : usize = 0;
+        let mut i : usize = 0_us;
         let mut buf : [u8; 3] = [ 0u8, 0u8, 0u8 ];
         for col in self.colors.iter()
         {
             let idx : usize = i % 3;
             buf[idx] = *col;
             if idx == 2us {
-                println!("[{:02.x}] 0x{:02.X}{:02.X}{:02.X}",
-                         i / 3, buf[0us], buf[1us], buf[2us]);
+                println!("{:>9} => 0x{:02.X}{:02.X}{:02.X}",
+                         Color::of_value((i / 3) as u8).to_string(),
+                         buf[0us], buf[1us], buf[2us]);
             }
             i = i + 1;
         }
@@ -313,13 +371,14 @@ impl std::fmt::Debug for Palette {
          f : &mut std::fmt::Formatter)
         -> std::fmt::Result
     {
-        let mut i : usize = 0_us;
-        while i < PALETTE_BYTES {
-            let r = self.colors[i + 0_us];
-            let g = self.colors[i + 1_us];
-            let b = self.colors[i + 2_us];
-            write!(f, "{:02} => 0x{:02.X}{:02.X}{:02.X}\n", i, r, g, b);
-            i = i + 3_us;
+        let mut i : u8 = 0_u8;
+        while (i as usize) < PALETTE_BYTES {
+            let r = self.colors[i as usize + 0_us];
+            let g = self.colors[i as usize + 1_us];
+            let b = self.colors[i as usize + 2_us];
+            write!(f, "{} => 0x{:02.X}{:02.X}{:02.X}\n",
+                   Color::of_value(i).to_string(), r, g, b);
+            i = i + 3_u8;
         }
         std::result::Result::Ok(())
     }
