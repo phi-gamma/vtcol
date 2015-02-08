@@ -5,8 +5,8 @@ extern crate getopts;
 
 #[derive(Show)]
 enum Color {
-    Black, Red,     Green, Yellow,
-    Blue,  Magenta, Cyan,  White
+    Black(bool), Red(bool),     Green(bool), Yellow(bool),
+    Blue(bool),  Magenta(bool), Cyan(bool),  White(bool),
 }
 
 impl Color {
@@ -17,26 +17,38 @@ impl Color {
     {
         match (val)
         {
-            0x00_u8 => Color::Black,
-            0x01_u8 => Color::Red,
-            0x02_u8 => Color::Green,
-            0x03_u8 => Color::Yellow,
-            0x04_u8 => Color::Blue,
-            0x05_u8 => Color::Magenta,
-            0x06_u8 => Color::Cyan,
-            0x07_u8 => Color::White,
+            0x00_u8 => Color::Black   (false),
+            0x01_u8 => Color::Red     (false),
+            0x02_u8 => Color::Green   (false),
+            0x03_u8 => Color::Yellow  (false),
+            0x04_u8 => Color::Blue    (false),
+            0x05_u8 => Color::Magenta (false),
+            0x06_u8 => Color::Cyan    (false),
+            0x07_u8 => Color::White   (false),
 
-            0x08_u8 => Color::Black,
-            0x09_u8 => Color::Red,
-            0x0a_u8 => Color::Green,
-            0x0b_u8 => Color::Yellow,
-            0x0c_u8 => Color::Blue,
-            0x0d_u8 => Color::Magenta,
-            0x0e_u8 => Color::Cyan,
-            0x0f_u8 => Color::White,
+            0x08_u8 => Color::Black   (true),
+            0x09_u8 => Color::Red     (true),
+            0x0a_u8 => Color::Green   (true),
+            0x0b_u8 => Color::Yellow  (true),
+            0x0c_u8 => Color::Blue    (true),
+            0x0d_u8 => Color::Magenta (true),
+            0x0e_u8 => Color::Cyan    (true),
+            0x0f_u8 => Color::White   (true),
 
-            _      => panic!("invalid color value: {}", val)
+            _ => panic!("invalid color value: {}", val)
         }
+    }
+
+    fn
+    format_brightness
+        (b : bool,
+         s : &str)
+        -> String
+    {
+        if b {
+            return String::from_str("bright ") + s;
+        }
+        String::from_str(s)
     }
 
     fn
@@ -44,18 +56,17 @@ impl Color {
         (&self)
         -> String
     {
-        let id : &str = match (*self)
+        match (*self)
         {
-            Color::Black   => "black",
-            Color::Red     => "red",
-            Color::Green   => "green",
-            Color::Yellow  => "yellow",
-            Color::Blue    => "blue",
-            Color::Magenta => "magenta",
-            Color::Cyan    => "cyan",
-            Color::White   => "white",
-        };
-        id.to_string()
+            Color::Black  (b) => { Color::format_brightness(b, "black"  ) },
+            Color::Red    (b) => { Color::format_brightness(b, "red"    ) },
+            Color::Green  (b) => { Color::format_brightness(b, "green"  ) },
+            Color::Yellow (b) => { Color::format_brightness(b, "yellow" ) },
+            Color::Blue   (b) => { Color::format_brightness(b, "blue"   ) },
+            Color::Magenta(b) => { Color::format_brightness(b, "magenta") },
+            Color::Cyan   (b) => { Color::format_brightness(b, "cyan"   ) },
+            Color::White  (b) => { Color::format_brightness(b, "white"  ) },
+        }
     }
 
 } /* [impl Color] */
@@ -270,7 +281,7 @@ impl Palette
             let idx : usize = i % 3;
             buf[idx] = *col;
             if idx == 2us {
-                println!("{:>9} => 0x{:02.X}{:02.X}{:02.X}",
+                println!("{:>15} => 0x{:02.X}{:02.X}{:02.X}",
                          Color::of_value((i / 3) as u8).to_string(),
                          buf[0us], buf[1us], buf[2us]);
             }
