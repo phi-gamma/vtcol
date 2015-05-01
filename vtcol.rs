@@ -3,6 +3,18 @@
 extern crate libc;
 extern crate getopts;
 
+type Fd = libc::c_int;
+
+const PALETTE_SIZE  : usize = 16_us;
+const PALETTE_BYTES : usize = PALETTE_SIZE * 3_us; // 16 * sizeof(int)
+
+type RawPalette<'a> = [&'a str; PALETTE_SIZE];
+
+const KDGKBTYPE     : libc::c_int  = 0x4b33;     /* kd.h */
+const PIO_CMAP      : libc::c_int  = 0x00004B71; /* kd.h */
+const KB_101        : libc::c_char = 0x0002;     /* kd.h */
+const O_NOCTTY      : libc::c_int  = 0o0400;     /* fcntl.h */
+
 #[derive(Show)]
 enum Color {
     Black(bool), Red(bool),     Green(bool), Yellow(bool),
@@ -72,9 +84,14 @@ impl Color {
 } /* [impl Color] */
 
 #[derive(Show)]
-enum Scheme { Default, SolarizedDark, SolarizedLight }
+enum Scheme<'a> {
+    Default,
+    SolarizedDark,
+    SolarizedLight,
+    Custom(RawPalette<'a>)
+}
 
-impl std::fmt::String for Scheme {
+impl<'a> std::fmt::String for Scheme<'a> {
 
     fn
     fmt (&self, f : &mut std::fmt::Formatter) -> std::fmt::Result
@@ -83,7 +100,8 @@ impl std::fmt::String for Scheme {
         {
             Scheme::Default         => "default",
             Scheme::SolarizedDark   => "solarized_dark",
-            Scheme::SolarizedLight  => "solarized_light"
+            Scheme::SolarizedLight  => "solarized_light",
+            Scheme::Custom(_)       => "custom",
         };
         write!(f, "{}", id)
     }
@@ -95,22 +113,23 @@ extern { fn exit (code : libc::c_int) -> !; }
 /* struct Job -- Runtime parameters.
  */
 #[derive(Show)]
-struct Job {
-    this   : String, /* argv[0] */
-    scheme : Scheme, /* The color scheme to switch to. */
+struct Job<'a> {
+    this   : String,     /* argv[0] */
+    scheme : Scheme<'a>, /* The color scheme to switch to. */
 }
 
-impl Job {
+impl<'a> Job<'a> {
 
     pub fn
     new ()
-        -> Job
+        -> Job<'a>
     {
         let argv = std::os::args();
         let this = argv[0].clone();
         let opts = &[
             getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
             getopts::optopt("d", "dump", "dump predefined scheme", "NAME"),
+            getopts::optopt("f", "file", "apply scheme from file", "PATH"),
             getopts::optflag("l", "list", "list available color schemes"),
             getopts::optflag("h", "help", "print this message")
         ];
@@ -143,14 +162,30 @@ impl Job {
             };
         }
 
-        let scheme = match matches.opt_str("s")
-        {
-            None => {
-                Job::usage(&this, opts);
-                panic!("no color scheme given, aborting")
-            },
-            Some (name) => Job::pick_scheme(&name)
-        };
+        let scheme =
+            if matches.opt_present("f")
+            {
+                match matches.opt_str("f")
+                {
+                    None => {
+                        Job::usage(&this, opts);
+                        panic!("no file name specified, aborting")
+                    },
+                    Some (fname) => {
+                        panic!("not implemented")
+                        //Scheme::from_file(fname)
+                    }
+                }
+            } else {
+                match matches.opt_str("s")
+                {
+                    None => {
+                        Job::usage(&this, opts);
+                        panic!("no color scheme given, aborting")
+                    },
+                    Some (name) => Job::pick_scheme(&name)
+                }
+            }; /* [let scheme] */
 
         Job {
             this   : this,
@@ -159,8 +194,8 @@ impl Job {
     }
 
     fn
-    pick_scheme (name : &String)
-        -> Scheme
+    pick_scheme <'b> (name : &String)
+        -> Scheme<'b>
     {
         match name.as_slice() {
             "solarized" | "solarized_dark" | "sd"
@@ -198,7 +233,8 @@ impl Job {
         match scm {
             Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
-            Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT)
+            Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT),
+            Scheme::Custom(_)      => panic!("not implemented! patience, my young padawan!")
         }
     }
 
@@ -224,16 +260,6 @@ extern {
         -> libc::c_int;
 }
 
-type Fd = libc::c_int;
-
-const PALETTE_SIZE  : usize = 16_us;
-const PALETTE_BYTES : usize = PALETTE_SIZE * 3_us; // 16 * sizeof(int)
-
-const KDGKBTYPE     : libc::c_int  = 0x4b33;     /* kd.h */
-const PIO_CMAP      : libc::c_int  = 0x00004B71; /* kd.h */
-const KB_101        : libc::c_char = 0x0002;     /* kd.h */
-const O_NOCTTY      : libc::c_int  = 0o0400;     /* fcntl.h */
-
 static CONSOLE_PATHS : [&'static str; 6] = [
     "/proc/self/fd/0",
     "/dev/tty",
@@ -243,21 +269,21 @@ static CONSOLE_PATHS : [&'static str; 6] = [
     "/dev/console",
 ];
 
-static DEFAULT_COLORS : [&'static str; PALETTE_SIZE] = [
+static DEFAULT_COLORS : RawPalette<'static> = [
     "000000", "aa0000", "00aa00", "aa5500",
     "0000aa", "aa00aa", "00aaaa", "aaaaaa",
     "555555", "ff5555", "55ff55", "ffff55",
     "5555ff", "ff55ff", "55ffff", "ffffff"
 ];
 
-static SOLARIZED_COLORS_DARK : [&'static str; PALETTE_SIZE] = [
+static SOLARIZED_COLORS_DARK : RawPalette<'static> = [
     "002b36", "dc322f", "859900", "b58900",
     "268bd2", "d33682", "2aa198", "eee8d5",
     "002b36", "cb4b16", "586e75", "657b83",
     "839496", "6c71c4", "93a1a1", "fdf6e3",
 ];
 
-static SOLARIZED_COLORS_LIGHT : [&'static str; PALETTE_SIZE] = [
+static SOLARIZED_COLORS_LIGHT : RawPalette<'static> = [
     "eee8d5", "dc322f", "859900", "b58900",
     "268bd2", "d33682", "2aa198", "073642",
     "fdf6e3", "cb4b16", "93a1a1", "839496",
@@ -493,6 +519,7 @@ main ()
             Scheme::Default        => Palette::new(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Palette::new(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Palette::new(&SOLARIZED_COLORS_LIGHT),
+            Scheme::Custom(_)      => panic!("not implemented")
         }
     };
     println!("{}", pal);
