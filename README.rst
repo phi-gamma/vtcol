@@ -73,7 +73,17 @@ might be achieved using more modern tools.
 **vtcols** was written mostly during day-long train rides between Tübingen and
 Dresden, so expect the commit history to exhibit a certain lack continuity.
 
-:: _setcolors:  https://github.com/FIXME/linux-vt-setcolors
+About
+#####
+
+**vtcol** is redistributable under the terms of the GNU General Public License
+version 3 (exactly). The full text of the license is contained in the file
+``COPYING`` in the root of the repository. Email the author_ if you wish to use
+it under a different license, there’s a non-zero chance that you might convince
+me.
+
+:: _setcolors:  https://github.com/EvanPurkhiser/linux-vt-setcolors
 :: _Solarized:  https://FIXME
 :: _Github:     https://github.com/phi-gamma/vtcols
+:: _author      `Philipp Gesang <mailto:phg@phi-gamma.net>`
 

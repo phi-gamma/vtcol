@@ -9,6 +9,7 @@ authors     = [ "Philipp Gesang <phg@phi-gamma.net>" ]
 repository  = "https://github.com/phi-gamma/vtcol"
 keywords    = ["linux", "virtual terminal", "vt", "tty", "console", "system"]
 readme      = "README.rst"
+license     = "GPL3"
 
 [[bin]]
 name        = "vtcol"
