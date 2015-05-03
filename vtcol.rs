@@ -402,12 +402,22 @@ impl Palette {
         while  let Ok(line) = reader.read_line() {
             let len = line.len();
             if len < 8_us { panic!("invalid line in string: {}", line); };
-            if let Some(idx) = line.find_str("#") {
-                let idx = idx + 1_us;
-                if idx > len - 6_us { /* no room left for color definition after '#' char */
+            if let Some(off) = line.find_str("#") {
+                if off != 0_us {
+                    /* Palette index specified, number prepended */
+                    let str_idx = line.slice_chars(0, off);
+                    let parse_res : Option<usize>
+                        = std::str::FromStr::from_str(str_idx);
+                    match parse_res {
+                        Some(new_idx) => pal_idx = new_idx * 3_us,
+                        None => ()
+                    }
+                }
+                let off = off + 1_us;
+                if off > len - 6_us { /* no room left for color definition after '#' char */
                     panic!("invalid color definition: {}", line);
                 }
-                let col = line.slice_chars(idx, idx + RAW_COLEXPR_SIZE);
+                let col = line.slice_chars(off, off + RAW_COLEXPR_SIZE);
 
                 let (r, g, b) = rgb_of_hex_triplet(col);
                 pal[pal_idx + 0_us] = r;
