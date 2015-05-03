@@ -48,5 +48,32 @@ This will print the list of color definitions as dictated by the scheme; if the
 specified name does not resolve to a pre-defined scheme it will be interpreted
 as a file name instead.
 
-:: _setcolors:  https://github.com/.../linux-vt-setcolors
+Background
+##########
+
+The default palette that comes with a Linux terminal was inherited from a long
+history of virtual console implementations. The colors assigned are chosen for
+totally valid pragmatic reasons. However, the palette may not harmonize with
+everybody’s taste. Unfortunately, the console can’t be themed easily: One needs
+to invoke a special ``ioctl(2)`` with the colors prepared in binary form in
+order for the kernel to switch the palette.
+
+**vtcol** attempts at facilitating the themability of the console by means of a
+simple plain text input format. The very popular themes from the Solarized_
+family are included as predefined palettes; the same is true of the Linux
+default palette, so they can be conveniently restored when experimenting.
+
+An implementation in C which **vtcols** draws much inspiration from is
+available in the setcolors_ utility. **vtcols** itself is implemented in Rust
+instead; a public repository is available on Github_. The author uses the
+original setcolors_ a lot, primarily inside his custom initramfs. The primary
+motivations of writing **vtcols** stems from curiosity as to how the same goal 
+might be achieved using more modern tools.
+
+**vtcols** was written mostly during day-long train rides between Tübingen and
+Dresden, so expect the commit history to exhibit a certain lack continuity.
+
+:: _setcolors:  https://github.com/FIXME/linux-vt-setcolors
+:: _Solarized:  https://FIXME
+:: _Github:     https://github.com/phi-gamma/vtcols
 
