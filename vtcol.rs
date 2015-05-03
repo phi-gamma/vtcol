@@ -11,6 +11,8 @@ type Fd = libc::c_int;
 const PALETTE_SIZE  : usize = 16_us;
 const PALETTE_BYTES : usize = PALETTE_SIZE * 3_us; // 16 * sizeof(int)
 
+const RAW_COLEXPR_SIZE : usize = 6_us; // e. g. 0xBADF00
+
 type RawPalette<'a> = [&'a str; PALETTE_SIZE];
 
 const KDGKBTYPE     : libc::c_int  = 0x4b33;     /* kd.h */
@@ -176,7 +178,6 @@ impl<'a> Job<'a> {
                     },
                     Some (fname) => {
                         panic!("not implemented")
-                        //Scheme::from_file(fname)
                     }
                 }
             } else {
@@ -210,27 +211,6 @@ impl<'a> Job<'a> {
             _any => Scheme::Custom (name.clone())
         }
     }
-
-    fn
-    load_scheme_file (name : &String)
-        -> Palette
-    {
-        /* Check if file exists
-         */
-        let path = Path::new(name.as_bytes());
-        let file = match std::io::File::open(&path)
-        {
-            Err(e) => panic!("failed to open {} as file ({})", name, e),
-            Ok(f) => f
-        };
-        let mut reader = std::io::BufferedReader::new(file);
-
-        /* Parse scheme file
-         */
-        Palette::dummy()
-        //Palette::from_file (&mut reader)
-    }
-
 
     fn
     usage (this : &String, opts: &[getopts::OptGroup])
@@ -415,22 +395,57 @@ impl Palette {
     } /* [Palette::dummy] */
 
     pub fn
-    from_file (_ : &mut std::io::BufferedReader<std::io::File>)
+    from_buffered_reader
+    (reader : &mut std::io::BufferedReader<std::io::File>)
         -> Palette
     {
-        Palette::dummy()
-        //let mut i : usize = 0_us;
-        //while  let Ok(line) = reader.read_line() {
-            //let len = line.len();
-            //if len < 8_us { panic!("invalid line in string: {}", line); };
-            //if let Some(idx) = line.find_str("#") {
-                //let idx = idx + 1_us;
-                //if idx > len - 6_us { /* no room left for color definition after '#' char */
-                    //panic!("invalid color definition: {}", line);
-                //}
-                //let col = line.slice_chars(idx, idx + 5_us);
-            //}
-        //};
+        let mut i     : usize = 0_us;
+        let mut red   : u32 = 0_u32;
+        let mut green : u32 = 0_u32;
+        let mut blue  : u32 = 0_u32;
+
+        let mut pal_idx : usize = 0_us;
+        let mut pal     : [u8; PALETTE_BYTES] = unsafe { std::mem::zeroed() };
+
+        while  let Ok(line) = reader.read_line() {
+            let len = line.len();
+            if len < 8_us { panic!("invalid line in string: {}", line); };
+            if let Some(idx) = line.find_str("#") {
+                let idx = idx + 1_us;
+                if idx > len - 6_us { /* no room left for color definition after '#' char */
+                    panic!("invalid color definition: {}", line);
+                }
+                let col = line.slice_chars(idx, idx + RAW_COLEXPR_SIZE);
+                println!("raw color: {}", col);
+
+                let (r, g, b) = rgb_of_hex_triplet(col);
+                pal[pal_idx + 0_us] = r;
+                pal[pal_idx + 1_us] = g;
+                pal[pal_idx + 2_us] = b;
+                pal_idx = pal_idx + 3_us;
+            }
+        };
+
+        Palette { colors : pal }
+    } /* [Palette::from_buffered_reader] */
+
+    pub fn
+    from_file (fname : &String)
+        -> Palette
+    {
+        /* Check if file exists
+         */
+        let path = Path::new(fname.as_bytes());
+        let file = match std::io::File::open(&path)
+        {
+            Err(e) => panic!("failed to open {} as file ({})", fname, e),
+            Ok(f) => f
+        };
+        let mut reader = std::io::BufferedReader::new(file);
+
+        /* Parse scheme file
+         */
+        Palette::from_buffered_reader (&mut reader)
     } /* [Palette::from_file] */
 
 } /* [impl Palette] */
@@ -571,11 +586,10 @@ main ()
     let color_set : [[&str; 7]; PALETTE_SIZE];
     let mut pal : Palette = {
         match job.scheme {
-            Scheme::Default        => Palette::new(&DEFAULT_COLORS),
-            Scheme::SolarizedDark  => Palette::new(&SOLARIZED_COLORS_DARK),
-            Scheme::SolarizedLight => Palette::new(&SOLARIZED_COLORS_LIGHT),
-            //Scheme::Custom (fname) => Palette::from_file(fname)
-            Scheme::Custom (_) => Palette::dummy()
+            Scheme::Default            => Palette::new(&DEFAULT_COLORS),
+            Scheme::SolarizedDark      => Palette::new(&SOLARIZED_COLORS_DARK),
+            Scheme::SolarizedLight     => Palette::new(&SOLARIZED_COLORS_LIGHT),
+            Scheme::Custom (ref fname) => Palette::from_file(fname)
         }
     };
     println!("{}", pal);
