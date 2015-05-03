@@ -1,7 +1,10 @@
 #![allow(unstable)]
 
+extern crate core;
 extern crate libc;
 extern crate getopts;
+
+use core::ptr;
 
 type Fd = libc::c_int;
 
@@ -88,7 +91,7 @@ enum Scheme<'a> {
     Default,
     SolarizedDark,
     SolarizedLight,
-    Custom(RawPalette<'a>)
+    Custom (&'a [&'a str; PALETTE_SIZE])
 }
 
 impl<'a> std::fmt::String for Scheme<'a> {
@@ -204,11 +207,40 @@ impl<'a> Job<'a> {
                 => Scheme::SolarizedLight,
             "default" | "normal"
                 => Scheme::Default,
-            garbage => {
-                panic!("unknown color scheme “{}”, aborting", garbage);
-            }
+            any => Scheme::Custom (Job::load_scheme_file(name)),
         }
     }
+
+    fn
+    load_scheme_file <'b> (name : &String)
+        -> &'b [&'b str; PALETTE_SIZE]
+    {
+        /* Check if file exists
+         */
+        let path = Path::new(name.as_bytes());
+        let file = match std::io::File::open(&path)
+        {
+            Err(e) => panic!("failed to open {} as file ({})", name, e),
+            Ok(f) => f
+        };
+        let mut reader = std::io::BufferedReader::new(file);
+
+        /* Parse scheme file
+         */
+        let mut i : usize = 0_us;
+        while  let Ok(line) = reader.read_line() {
+            let len = line.len();
+            if len < 8_us { panic!("invalid line in string: {}", line); };
+            if let Some(idx) = line.find_str("#") {
+                let idx = idx + 1_us;
+                if idx > len - 6_us { /* no room left for color definition after '#' char */
+                    panic!("invalid color definition: {}", line);
+                }
+                let col = line.slice_chars(idx, idx + 5_us);
+            }
+        };
+    }
+
 
     fn
     usage (this : &String, opts: &[getopts::OptGroup])
@@ -234,7 +266,7 @@ impl<'a> Job<'a> {
             Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom(_)      => panic!("not implemented! patience, my young padawan!")
+            Scheme::Custom(cols)   => Job::dump_scheme(cols),
         }
     }
 
@@ -519,7 +551,7 @@ main ()
             Scheme::Default        => Palette::new(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Palette::new(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Palette::new(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom(_)      => panic!("not implemented")
+            Scheme::Custom (cols)  => Palette::new(cols),
         }
     };
     println!("{}", pal);
