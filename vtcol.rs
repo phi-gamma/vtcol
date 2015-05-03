@@ -409,7 +409,9 @@ impl Palette {
                     let parse_res : Option<usize>
                         = std::str::FromStr::from_str(str_idx);
                     match parse_res {
-                        Some(new_idx) => pal_idx = new_idx * 3_us,
+                        Some(new_idx) => {
+                            if new_idx < PALETTE_SIZE { pal_idx = new_idx * 3_us; }
+                        },
                         None => ()
                     }
                 }
@@ -423,7 +425,7 @@ impl Palette {
                 pal[pal_idx + 0_us] = r;
                 pal[pal_idx + 1_us] = g;
                 pal[pal_idx + 2_us] = b;
-                pal_idx = pal_idx + 3_us;
+                pal_idx = (pal_idx + 3_us) % PALETTE_BYTES;
             }
         };
 
