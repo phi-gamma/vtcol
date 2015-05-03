@@ -1,10 +1,7 @@
 #![allow(unstable)]
 
-extern crate core;
 extern crate libc;
 extern crate getopts;
-
-use core::ptr;
 
 type Fd = libc::c_int;
 
@@ -32,7 +29,7 @@ impl Color {
     of_value (val : u8)
         -> Color
     {
-        match (val)
+        match val
         {
             0x00_u8 => Color::Black   (false),
             0x01_u8 => Color::Red     (false),
@@ -73,7 +70,7 @@ impl Color {
         (&self)
         -> String
     {
-        match (*self)
+        match *self
         {
             Color::Black  (b) => { Color::format_brightness(b, "black"  ) },
             Color::Red    (b) => { Color::format_brightness(b, "red"    ) },
@@ -96,12 +93,12 @@ enum Scheme<'a> {
     Custom (String)
 }
 
-impl<'a> std::fmt::String for Scheme<'a> {
+impl<'a> std::fmt::Display for Scheme<'a> {
 
     fn
     fmt (&self, f : &mut std::fmt::Formatter) -> std::fmt::Result
     {
-        let id : &str = match (*self)
+        let id : &str = match *self
         {
             Scheme::Default           => "default",
             Scheme::SolarizedDark     => "solarized_dark",
@@ -176,9 +173,7 @@ impl<'a> Job<'a> {
                         Job::usage(&this, opts);
                         panic!("no file name specified, aborting")
                     },
-                    Some (fname) => {
-                        panic!("not implemented")
-                    }
+                    Some (fname) => Scheme::Custom(fname.clone())
                 }
             } else {
                 match matches.opt_str("s")
@@ -236,7 +231,7 @@ impl<'a> Job<'a> {
             Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom(fname)  => Job::dump_scheme(&DUMMY_COLORS),
+            Scheme::Custom(_fname) => panic!("cannot dump custom palette, yet")
         }
     }
 
@@ -299,6 +294,7 @@ static DUMMY_COLORS : RawPalette<'static> = [
     "000000", "ffffff", "000000", "ffffff",
 ];
 
+#[derive(Copy)]
 pub struct Palette {
     colors : [u8; PALETTE_BYTES]
 }
@@ -365,13 +361,8 @@ impl Palette {
     new (colors : &[&str; PALETTE_SIZE])
         -> Palette
     {
-        let mut red   : u32 = 0_u32;
-        let mut green : u32 = 0_u32;
-        let mut blue  : u32 = 0_u32;
-
         let mut idx : usize = 0_us;
         let mut pal : [u8; PALETTE_BYTES] = unsafe { std::mem::zeroed() };
-            ;
 
         for def in colors.iter() {
             let (r, g, b) = rgb_of_hex_triplet(*def);
@@ -399,11 +390,6 @@ impl Palette {
     (reader : &mut std::io::BufferedReader<std::io::File>)
         -> Palette
     {
-        let mut i     : usize = 0_us;
-        let mut red   : u32 = 0_u32;
-        let mut green : u32 = 0_u32;
-        let mut blue  : u32 = 0_u32;
-
         let mut pal_idx : usize = 0_us;
         let mut pal     : [u8; PALETTE_BYTES] = unsafe { std::mem::zeroed() };
 
@@ -459,11 +445,11 @@ impl std::fmt::Display for Palette {
     {
         let mut i : usize = 0_us;
         while i < PALETTE_BYTES {
-            write!(f, "{}", if i == 0 { "(" } else { "\n " });
+            let _ = write!(f, "{}", if i == 0 { "(" } else { "\n " });
             let r = self.colors[i + 0_us];
             let g = self.colors[i + 1_us];
             let b = self.colors[i + 2_us];
-            write!(f, "((r 0x{:02.X}) (g 0x{:02.X}) (b 0x{:02.x}))", r, g, b);
+            let _ = write!(f, "((r 0x{:02.X}) (g 0x{:02.X}) (b 0x{:02.x}))", r, g, b);
             i = i + 3_us;
         }
         write!(f, ")\n")
@@ -483,8 +469,8 @@ impl std::fmt::Debug for Palette {
             let r = self.colors[i as usize + 0_us];
             let g = self.colors[i as usize + 1_us];
             let b = self.colors[i as usize + 2_us];
-            write!(f, "{} => 0x{:02.X}{:02.X}{:02.X}\n",
-                   Color::of_value(i).to_string(), r, g, b);
+            let _ = write!(f, "{} => 0x{:02.X}{:02.X}{:02.X}\n",
+                           Color::of_value(i).to_string(), r, g, b);
             i = i + 3_u8;
         }
         std::result::Result::Ok(())
@@ -583,7 +569,6 @@ main ()
 {
     let job = Job::new();
     println!("job parms: {:?}", job);
-    let color_set : [[&str; 7]; PALETTE_SIZE];
     let mut pal : Palette = {
         match job.scheme {
             Scheme::Default            => Palette::new(&DEFAULT_COLORS),
