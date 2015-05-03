@@ -48,9 +48,20 @@ This will print the list of color definitions as dictated by the scheme; if the
 specified name does not resolve to a pre-defined scheme it will be interpreted
 as a file name instead.
 
-Background
-##########
+Building
+--------
+The **vtcol** repository aims at compliance with the standard Rust toolchain.
+Consequently, the project is packaged using Cargo_. In order to compile a
+binary, run
 
+::
+
+    cargo build
+
+In the project root. This should get you a ``vtcol`` binary.
+
+Background
+----------
 The default palette that comes with a Linux terminal was inherited from a long
 history of virtual console implementations. The colors assigned are chosen for
 totally valid pragmatic reasons. However, the palette may not harmonize with
@@ -70,11 +81,12 @@ original setcolors_ a lot, primarily inside his custom initramfs. The primary
 motivations of writing **vtcols** stems from curiosity as to how the same goal 
 might be achieved using more modern tools.
 
-**vtcols** was written mostly during day-long train rides between Tübingen and
-Dresden, so expect the commit history to exhibit a certain lack continuity.
-
 About
-#####
+-----
+**vtcols** was written mostly during day-long train rides between Tübingen and
+Dresden, so expect the commit history to exhibit a certain lack continuity. Its
+author_ is Philipp Gesang; see the Bitbucket (author-bb_) and Github
+(author-gh_) pages.
 
 **vtcol** is redistributable under the terms of the GNU General Public License
 version 3 (exactly). The full text of the license is contained in the file
@@ -82,8 +94,13 @@ version 3 (exactly). The full text of the license is contained in the file
 it under a different license, there’s a non-zero chance that you might convince
 me.
 
+Patches or suggestions welcome.
+
 :: _setcolors:  https://github.com/EvanPurkhiser/linux-vt-setcolors
 :: _Solarized:  https://FIXME
 :: _Github:     https://github.com/phi-gamma/vtcols
-:: _author      `Philipp Gesang <mailto:phg@phi-gamma.net>`
+:: _author:     `Philipp Gesang <mailto:phg@phi-gamma.net>`
+:: _author-bb:  https://bitbucket.org/phg
+:: _author-gh:  https://github.com/phi-gamma
+:: _Cargo:      https://github.com/rust-lang/cargo
 
