@@ -91,7 +91,7 @@ enum Scheme<'a> {
     Default,
     SolarizedDark,
     SolarizedLight,
-    Custom (&'a [&'a str; PALETTE_SIZE])
+    Custom (String)
 }
 
 impl<'a> std::fmt::String for Scheme<'a> {
@@ -101,10 +101,10 @@ impl<'a> std::fmt::String for Scheme<'a> {
     {
         let id : &str = match (*self)
         {
-            Scheme::Default         => "default",
-            Scheme::SolarizedDark   => "solarized_dark",
-            Scheme::SolarizedLight  => "solarized_light",
-            Scheme::Custom(_)       => "custom",
+            Scheme::Default           => "default",
+            Scheme::SolarizedDark     => "solarized_dark",
+            Scheme::SolarizedLight    => "solarized_light",
+            Scheme::Custom(ref fname) => fname.as_slice()
         };
         write!(f, "{}", id)
     }
@@ -207,13 +207,13 @@ impl<'a> Job<'a> {
                 => Scheme::SolarizedLight,
             "default" | "normal"
                 => Scheme::Default,
-            any => Scheme::Custom (Job::load_scheme_file(name)),
+            _any => Scheme::Custom (name.clone())
         }
     }
 
     fn
-    load_scheme_file <'b> (name : &String)
-        -> &'b [&'b str; PALETTE_SIZE]
+    load_scheme_file (name : &String)
+        -> Palette
     {
         /* Check if file exists
          */
@@ -227,18 +227,8 @@ impl<'a> Job<'a> {
 
         /* Parse scheme file
          */
-        let mut i : usize = 0_us;
-        while  let Ok(line) = reader.read_line() {
-            let len = line.len();
-            if len < 8_us { panic!("invalid line in string: {}", line); };
-            if let Some(idx) = line.find_str("#") {
-                let idx = idx + 1_us;
-                if idx > len - 6_us { /* no room left for color definition after '#' char */
-                    panic!("invalid color definition: {}", line);
-                }
-                let col = line.slice_chars(idx, idx + 5_us);
-            }
-        };
+        Palette::dummy()
+        //Palette::from_file (&mut reader)
     }
 
 
@@ -266,7 +256,7 @@ impl<'a> Job<'a> {
             Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom(cols)   => Job::dump_scheme(cols),
+            Scheme::Custom(fname)  => Job::dump_scheme(&DUMMY_COLORS),
         }
     }
 
@@ -320,6 +310,13 @@ static SOLARIZED_COLORS_LIGHT : RawPalette<'static> = [
     "268bd2", "d33682", "2aa198", "073642",
     "fdf6e3", "cb4b16", "93a1a1", "839496",
     "657b83", "6c71c4", "586e75", "002b36",
+];
+
+static DUMMY_COLORS : RawPalette<'static> = [
+    "000000", "ffffff", "000000", "ffffff",
+    "000000", "ffffff", "000000", "ffffff",
+    "000000", "ffffff", "000000", "ffffff",
+    "000000", "ffffff", "000000", "ffffff",
 ];
 
 pub struct Palette {
@@ -408,7 +405,33 @@ impl Palette {
         Palette {
             colors : pal
         }
-    }
+    } /* [Palette::new] */
+
+    pub fn
+    dummy ()
+        -> Palette
+    {
+        Palette::new(&DUMMY_COLORS)
+    } /* [Palette::dummy] */
+
+    pub fn
+    from_file (_ : &mut std::io::BufferedReader<std::io::File>)
+        -> Palette
+    {
+        Palette::dummy()
+        //let mut i : usize = 0_us;
+        //while  let Ok(line) = reader.read_line() {
+            //let len = line.len();
+            //if len < 8_us { panic!("invalid line in string: {}", line); };
+            //if let Some(idx) = line.find_str("#") {
+                //let idx = idx + 1_us;
+                //if idx > len - 6_us { /* no room left for color definition after '#' char */
+                    //panic!("invalid color definition: {}", line);
+                //}
+                //let col = line.slice_chars(idx, idx + 5_us);
+            //}
+        //};
+    } /* [Palette::from_file] */
 
 } /* [impl Palette] */
 
@@ -551,7 +574,8 @@ main ()
             Scheme::Default        => Palette::new(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Palette::new(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Palette::new(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom (cols)  => Palette::new(cols),
+            //Scheme::Custom (fname) => Palette::from_file(fname)
+            Scheme::Custom (_) => Palette::dummy()
         }
     };
     println!("{}", pal);
