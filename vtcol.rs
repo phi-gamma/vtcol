@@ -231,7 +231,7 @@ impl<'a> Job<'a> {
             Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom(_fname) => panic!("cannot dump custom palette, yet")
+            Scheme::Custom(fname)  => Job::dump_palette(Palette::from_file(&fname))
         }
     }
 
@@ -239,6 +239,12 @@ impl<'a> Job<'a> {
     dump_scheme (colors : &[&str; PALETTE_SIZE])
     {
         let pal : Palette = Palette::new(colors);
+        pal.dump()
+    }
+
+    fn
+    dump_palette (pal : Palette)
+    {
         pal.dump()
     }
 
@@ -402,7 +408,6 @@ impl Palette {
                     panic!("invalid color definition: {}", line);
                 }
                 let col = line.slice_chars(idx, idx + RAW_COLEXPR_SIZE);
-                println!("raw color: {}", col);
 
                 let (r, g, b) = rgb_of_hex_triplet(col);
                 pal[pal_idx + 0_us] = r;
