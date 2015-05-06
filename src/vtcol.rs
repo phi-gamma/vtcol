@@ -126,7 +126,7 @@ impl<'a> Job<'a> {
     new ()
         -> Job<'a>
     {
-        let argv = std::os::args();
+        let argv = std::env::args();
         let this = argv[0].clone();
         let opts = &[
             getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
@@ -393,7 +393,7 @@ impl Palette {
 
     pub fn
     from_buffered_reader
-    (reader : &mut std::io::BufferedReader<std::io::File>)
+    (reader : &mut std::io::BufReader<std::fs::File>)
         -> Palette
     {
         let mut pal_idx : usize = 0_usize;
@@ -438,13 +438,13 @@ impl Palette {
     {
         /* Check if file exists
          */
-        let path = Path::new(fname.as_bytes());
-        let file = match std::io::File::open(&path)
+        let path = std::path::Path::new(fname.as_bytes());
+        let file = match std::fs::File::open(&path)
         {
             Err(e) => panic!("failed to open {} as file ({})", fname, e),
             Ok(f) => f
         };
-        let mut reader = std::io::BufferedReader::new(file);
+        let mut reader = std::io::BufReader::new(file);
 
         /* Parse scheme file
          */
