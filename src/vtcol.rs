@@ -17,7 +17,7 @@ const PIO_CMAP      : libc::c_int  = 0x00004B71; /* kd.h */
 const KB_101        : libc::c_char = 0x0002;     /* kd.h */
 const O_NOCTTY      : libc::c_int  = 0o0400;     /* fcntl.h */
 
-#[derive(Show)]
+#[derive(Debug)]
 enum Color {
     Black(bool), Red(bool),     Green(bool), Yellow(bool),
     Blue(bool),  Magenta(bool), Cyan(bool),  White(bool),
@@ -85,7 +85,7 @@ impl Color {
 
 } /* [impl Color] */
 
-#[derive(Show)]
+#[derive(Debug)]
 enum Scheme<'a> {
     Default,
     SolarizedDark,
@@ -114,7 +114,7 @@ extern { fn exit (code : libc::c_int) -> !; }
 
 /* struct Job -- Runtime parameters.
  */
-#[derive(Show)]
+#[derive(Debug)]
 struct Job<'a> {
     this   : String,     /* argv[0] */
     scheme : Scheme<'a>, /* The color scheme to switch to. */
@@ -300,7 +300,7 @@ static DUMMY_COLORS : RawPalette<'static> = [
     "000000", "ffffff", "000000", "ffffff",
 ];
 
-#[derive(Copy)]
+#[derive(Debug)]
 pub struct Palette {
     colors : [u8; PALETTE_BYTES]
 }
