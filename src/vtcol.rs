@@ -86,14 +86,14 @@ impl Color {
 } /* [impl Color] */
 
 #[derive(Debug)]
-enum Scheme<'a> {
+enum Scheme {
     Default,
     SolarizedDark,
     SolarizedLight,
     Custom (String)
 }
 
-impl<'a> std::fmt::Display for Scheme<'a> {
+impl<'a> std::fmt::Display for Scheme {
 
     fn
     fmt (&self, f : &mut std::fmt::Formatter) -> std::fmt::Result
@@ -115,16 +115,16 @@ extern { fn exit (code : libc::c_int) -> !; }
 /* struct Job -- Runtime parameters.
  */
 #[derive(Debug)]
-struct Job<'a> {
-    this   : String,     /* argv[0] */
-    scheme : Scheme<'a>, /* The color scheme to switch to. */
+struct Job {
+    this   : String, /* argv[0] */
+    scheme : Scheme, /* The color scheme to switch to. */
 }
 
-impl<'a> Job<'a> {
+impl<'a> Job {
 
     pub fn
     new ()
-        -> Job<'a>
+        -> Job
     {
         let argv = std::env::args();
         let this = argv[0].clone();
@@ -194,7 +194,7 @@ impl<'a> Job<'a> {
 
     fn
     pick_scheme <'b> (name : &String)
-        -> Scheme<'b>
+        -> Scheme
     {
         match name.as_slice() {
             "solarized" | "solarized_dark" | "sd"
@@ -300,7 +300,6 @@ static DUMMY_COLORS : RawPalette<'static> = [
     "000000", "ffffff", "000000", "ffffff",
 ];
 
-#[derive(Debug)]
 pub struct Palette {
     colors : [u8; PALETTE_BYTES]
 }
