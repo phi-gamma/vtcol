@@ -5,10 +5,10 @@ extern crate getopts;
 
 type Fd = libc::c_int;
 
-const PALETTE_SIZE  : usize = 16_us;
-const PALETTE_BYTES : usize = PALETTE_SIZE * 3_us; // 16 * sizeof(int)
+const PALETTE_SIZE  : usize = 16_usize;
+const PALETTE_BYTES : usize = PALETTE_SIZE * 3_usize; // 16 * sizeof(int)
 
-const RAW_COLEXPR_SIZE : usize = 6_us; // e. g. 0xBADF00
+const RAW_COLEXPR_SIZE : usize = 6_usize; // e. g. 0xBADF00
 
 type RawPalette<'a> = [&'a str; PALETTE_SIZE];
 
@@ -311,16 +311,16 @@ impl Palette
     fn
     dump (&self)
     {
-        let mut i : usize = 0_us;
+        let mut i : usize = 0_usize;
         let mut buf : [u8; 3] = [ 0u8, 0u8, 0u8 ];
         for col in self.colors.iter()
         {
             let idx : usize = i % 3;
             buf[idx] = *col;
-            if idx == 2us {
+            if idx == 2_usize {
                 println!("{:>15} => 0x{:02.X}{:02.X}{:02.X}",
                          Color::of_value((i / 3) as u8).to_string(),
-                         buf[0us], buf[1us], buf[2us]);
+                         buf[0_usize], buf[1_usize], buf[2_usize]);
             }
             i = i + 1;
         }
@@ -344,7 +344,7 @@ nibble_of_char
 macro_rules! byte_of_hex {
     ($ar:ident, $off:expr) => (
         (nibble_of_char($ar[$off])) << 4
-         | nibble_of_char($ar[$off + 1_us]) as u8
+         | nibble_of_char($ar[$off + 1_usize]) as u8
     )
 }
 
@@ -367,16 +367,16 @@ impl Palette {
     new (colors : &[&str; PALETTE_SIZE])
         -> Palette
     {
-        let mut idx : usize = 0_us;
+        let mut idx : usize = 0_usize;
         let mut pal : [u8; PALETTE_BYTES] = unsafe { std::mem::zeroed() };
 
         for def in colors.iter() {
             let (r, g, b) = rgb_of_hex_triplet(*def);
-            pal[idx + 0_us] = r;
-            pal[idx + 1_us] = g;
-            pal[idx + 2_us] = b;
+            pal[idx + 0_usize] = r;
+            pal[idx + 1_usize] = g;
+            pal[idx + 2_usize] = b;
             //println!(">> {} -> {:X} {:X} {:X}", def, r, g, b);
-            idx = idx + 3_us;
+            idx = idx + 3_usize;
         }
 
         Palette {
@@ -396,36 +396,36 @@ impl Palette {
     (reader : &mut std::io::BufferedReader<std::io::File>)
         -> Palette
     {
-        let mut pal_idx : usize = 0_us;
+        let mut pal_idx : usize = 0_usize;
         let mut pal     : [u8; PALETTE_BYTES] = unsafe { std::mem::zeroed() };
 
         while  let Ok(line) = reader.read_line() {
             let len = line.len();
-            if len < 8_us { panic!("invalid line in string: {}", line); };
+            if len < 8_usize { panic!("invalid line in string: {}", line); };
             if let Some(off) = line.find_str("#") {
-                if off != 0_us {
+                if off != 0_usize {
                     /* Palette index specified, number prepended */
                     let str_idx = line.slice_chars(0, off);
                     let parse_res : Option<usize>
                         = std::str::FromStr::from_str(str_idx);
                     match parse_res {
                         Some(new_idx) => {
-                            if new_idx < PALETTE_SIZE { pal_idx = new_idx * 3_us; }
+                            if new_idx < PALETTE_SIZE { pal_idx = new_idx * 3_usize; }
                         },
                         None => ()
                     }
                 }
-                let off = off + 1_us;
-                if off > len - 6_us { /* no room left for color definition after '#' char */
+                let off = off + 1_usize;
+                if off > len - 6_usize { /* no room left for color definition after '#' char */
                     panic!("invalid color definition: {}", line);
                 }
                 let col = line.slice_chars(off, off + RAW_COLEXPR_SIZE);
 
                 let (r, g, b) = rgb_of_hex_triplet(col);
-                pal[pal_idx + 0_us] = r;
-                pal[pal_idx + 1_us] = g;
-                pal[pal_idx + 2_us] = b;
-                pal_idx = (pal_idx + 3_us) % PALETTE_BYTES;
+                pal[pal_idx + 0_usize] = r;
+                pal[pal_idx + 1_usize] = g;
+                pal[pal_idx + 2_usize] = b;
+                pal_idx = (pal_idx + 3_usize) % PALETTE_BYTES;
             }
         };
 
@@ -460,14 +460,14 @@ impl std::fmt::Display for Palette {
          f : &mut std::fmt::Formatter)
         -> std::fmt::Result
     {
-        let mut i : usize = 0_us;
+        let mut i : usize = 0_usize;
         while i < PALETTE_BYTES {
             let _ = write!(f, "{}", if i == 0 { "(" } else { "\n " });
-            let r = self.colors[i + 0_us];
-            let g = self.colors[i + 1_us];
-            let b = self.colors[i + 2_us];
+            let r = self.colors[i + 0_usize];
+            let g = self.colors[i + 1_usize];
+            let b = self.colors[i + 2_usize];
             let _ = write!(f, "((r 0x{:02.X}) (g 0x{:02.X}) (b 0x{:02.x}))", r, g, b);
-            i = i + 3_us;
+            i = i + 3_usize;
         }
         write!(f, ")\n")
     }
@@ -483,9 +483,9 @@ impl std::fmt::Debug for Palette {
     {
         let mut i : u8 = 0_u8;
         while (i as usize) < PALETTE_BYTES {
-            let r = self.colors[i as usize + 0_us];
-            let g = self.colors[i as usize + 1_us];
-            let b = self.colors[i as usize + 2_us];
+            let r = self.colors[i as usize + 0_usize];
+            let g = self.colors[i as usize + 1_usize];
+            let b = self.colors[i as usize + 2_usize];
             let _ = write!(f, "{} => 0x{:02.X}{:02.X}{:02.X}\n",
                            Color::of_value(i).to_string(), r, g, b);
             i = i + 3_u8;
