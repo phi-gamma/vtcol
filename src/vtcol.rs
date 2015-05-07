@@ -95,7 +95,7 @@ enum Scheme {
     Default,
     SolarizedDark,
     SolarizedLight,
-    Custom (String)
+    Custom (Option<String>)
 }
 
 impl<'a> std::fmt::Display for Scheme {
@@ -108,7 +108,13 @@ impl<'a> std::fmt::Display for Scheme {
             Scheme::Default           => "default",
             Scheme::SolarizedDark     => "solarized_dark",
             Scheme::SolarizedLight    => "solarized_light",
-            Scheme::Custom(ref fname) => fname.as_str()
+            Scheme::Custom(ref kind) => {
+                let tmp : &str = match *kind {
+                    Some(ref fname) => fname.as_str(),
+                    None            => "<read stdin>"
+                };
+                tmp
+            }
         };
         write!(f, "{}", id)
     }
@@ -178,16 +184,13 @@ impl<'a> Job {
                         Job::usage(&this, opts);
                         panic!("no file name specified, aborting")
                     },
-                    Some (fname) => Scheme::Custom(fname.clone())
+                    Some (fname) => Scheme::Custom(Some(fname.clone()))
                 }
             } else {
                 match matches.opt_str("s")
                 {
-                    None => {
-                        Job::usage(&this, opts);
-                        panic!("no color scheme given, aborting")
-                    },
-                    Some (name) => Job::pick_scheme(&name)
+                    Some (name) => Job::pick_scheme(&name),
+                    None        => Job::scheme_from_stdin()
                 }
             }; /* [let scheme] */
 
@@ -208,8 +211,15 @@ impl<'a> Job {
                 => Scheme::SolarizedLight,
             "default" | "normal"
                 => Scheme::Default,
-            _any => Scheme::Custom (name.clone())
+            _any => Scheme::Custom (Some(name.clone()))
         }
+    }
+
+    fn
+    scheme_from_stdin ()
+        -> Scheme
+    {
+        Scheme::Custom(None)
     }
 
     fn
@@ -236,7 +246,11 @@ impl<'a> Job {
             Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight => Job::dump_scheme(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom(fname)  => Job::dump_palette(Palette::from_file(&fname))
+            Scheme::Custom(kind)  =>
+                match kind {
+                    Some(fname) => Job::dump_palette(Palette::from_file(&fname)),
+                    None        => Job::dump_palette(Palette::from_stdin())
+                }
         }
     }
 
@@ -397,7 +411,7 @@ impl Palette {
 
     pub fn
     from_buffered_reader
-    (reader : &mut std::io::BufReader<std::fs::File>)
+    (reader : &mut std::io::BufRead)
         -> Palette
     {
         let mut pal_idx : usize = 0_usize;
@@ -454,6 +468,17 @@ impl Palette {
          */
         Palette::from_buffered_reader (&mut reader)
     } /* [Palette::from_file] */
+
+    pub fn
+    from_stdin ()
+        -> Palette
+    {
+        let mut reader = std::io::BufReader::new(std::io::stdin());
+
+        /* Parse scheme file
+         */
+        Palette::from_buffered_reader (&mut reader)
+    } /* [Palette::from_stdin] */
 
 } /* [impl Palette] */
 
@@ -596,7 +621,11 @@ main ()
             Scheme::Default            => Palette::new(&DEFAULT_COLORS),
             Scheme::SolarizedDark      => Palette::new(&SOLARIZED_COLORS_DARK),
             Scheme::SolarizedLight     => Palette::new(&SOLARIZED_COLORS_LIGHT),
-            Scheme::Custom (ref fname) => Palette::from_file(fname)
+            Scheme::Custom(ref kind) =>
+                match *kind {
+                    Some(ref fname) => Palette::from_file(fname),
+                    None            => Palette::from_stdin()
+                }
         }
     };
     println!("{}", pal);
