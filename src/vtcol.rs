@@ -103,7 +103,7 @@ impl<'a> std::fmt::Display for Scheme {
             Scheme::Default           => "default",
             Scheme::SolarizedDark     => "solarized_dark",
             Scheme::SolarizedLight    => "solarized_light",
-            Scheme::Custom(ref fname) => fname.as_slice()
+            Scheme::Custom(ref fname) => fname.as_str()
         };
         write!(f, "{}", id)
     }
@@ -126,7 +126,7 @@ impl<'a> Job {
     new ()
         -> Job
     {
-        let argv = std::env::args();
+        let argv : Vec<String> = std::env::args().collect();
         let this = argv[0].clone();
         let opts = &[
             getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
@@ -196,7 +196,7 @@ impl<'a> Job {
     pick_scheme <'b> (name : &String)
         -> Scheme
     {
-        match name.as_slice() {
+        match name.as_str() {
             "solarized" | "solarized_dark" | "sd"
                 => Scheme::SolarizedDark,
             "solarized_light" | "sl"
@@ -211,7 +211,7 @@ impl<'a> Job {
     usage (this : &String, opts: &[getopts::OptGroup])
     {
         let brief = format!("usage: {} [options]", this);
-        print!("{}", getopts::usage(brief.as_slice(), opts));
+        print!("{}", getopts::usage(brief.as_str(), opts));
     }
 
     fn
@@ -405,7 +405,7 @@ impl Palette {
                 if off != 0_usize {
                     /* Palette index specified, number prepended */
                     let str_idx = line.slice_chars(0, off);
-                    let parse_res : Option<usize>
+                    let parse_res : Result<usize>
                         = std::str::FromStr::from_str(str_idx);
                     match parse_res {
                         Some(new_idx) => {
@@ -500,7 +500,7 @@ fd_of_path
     (path : &std::path::Path)
     -> Option<Fd>
 {
-    let p = std::ffi::CString::from_slice(path.as_vec());
+    let p = std::ffi::CString::new(path.to_str().unwrap()).unwrap();
     match unsafe { libc::open(p.as_ptr(), libc::O_RDWR | O_NOCTTY, 0) }
     {
         -1 => return None,
@@ -538,7 +538,8 @@ get_console_fd
     {
         Some (path) =>
         {
-            let path = std::path::Path::new(std::ffi::CString::from_slice(path.as_bytes()));
+            //let path = std::path::Path::new(std::ffi::CString::new(path.as_bytes()).unwrap());
+            let path = std::path::Path::new(path);
             match fd_of_path(&path)
             {
                 Some (fd) => Some (fd),
@@ -567,7 +568,7 @@ fn
 write_to_term (fd : Fd, buf : &str)
 {
     let len = buf.len() as u64;
-    let raw = std::ffi::CString::from_slice(buf.as_bytes());
+    let raw = std::ffi::CString::new(buf.as_bytes()).unwrap();
     unsafe { libc::write(fd, raw.as_ptr() as *const libc::c_void, len) };
 }
 
