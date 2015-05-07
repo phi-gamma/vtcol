@@ -1,7 +1,12 @@
-#![allow(unstable)]
+#![feature(libc)]
+#![feature(rustc_private)]
+#![feature(collections)]
+#![feature(convert)]
 
 extern crate libc;
 extern crate getopts;
+
+use std::io::BufRead;
 
 type Fd = libc::c_int;
 
@@ -397,21 +402,21 @@ impl Palette {
     {
         let mut pal_idx : usize = 0_usize;
         let mut pal     : [u8; PALETTE_BYTES] = unsafe { std::mem::zeroed() };
+        let mut line    : String = String::new();
 
-        while  let Ok(line) = reader.read_line() {
-            let len = line.len();
+        while  let Ok(len) = reader.read_line(&mut line) {
             if len < 8_usize { panic!("invalid line in string: {}", line); };
-            if let Some(off) = line.find_str("#") {
+            if let Some(off) = line.find('#') {
                 if off != 0_usize {
                     /* Palette index specified, number prepended */
-                    let str_idx = line.slice_chars(0, off);
-                    let parse_res : Result<usize>
+                    let str_idx = unsafe { line.slice_unchecked(0_usize, off) };
+                    let parse_res : Result<usize, _>
                         = std::str::FromStr::from_str(str_idx);
                     match parse_res {
-                        Some(new_idx) => {
+                        Ok(new_idx) => {
                             if new_idx < PALETTE_SIZE { pal_idx = new_idx * 3_usize; }
                         },
-                        None => ()
+                        _ => ()
                     }
                 }
                 let off = off + 1_usize;
@@ -437,7 +442,7 @@ impl Palette {
     {
         /* Check if file exists
          */
-        let path = std::path::Path::new(fname.as_bytes());
+        let path = std::path::Path::new(fname);
         let file = match std::fs::File::open(&path)
         {
             Err(e) => panic!("failed to open {} as file ({})", fname, e),
