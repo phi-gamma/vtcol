@@ -418,33 +418,37 @@ impl Palette {
         let mut pal     : [u8; PALETTE_BYTES] = unsafe { std::mem::zeroed() };
         let mut line    : String = String::new();
 
-        while  let Ok(len) = reader.read_line(&mut line) {
-            if len < 8_usize { panic!("invalid line in string: {}", line); };
-            if let Some(off) = line.find('#') {
-                if off != 0_usize {
-                    /* Palette index specified, number prepended */
-                    let str_idx = unsafe { line.slice_unchecked(0_usize, off) };
-                    let parse_res : Result<usize, _>
-                        = std::str::FromStr::from_str(str_idx);
-                    match parse_res {
-                        Ok(new_idx) => {
-                            if new_idx < PALETTE_SIZE { pal_idx = new_idx * 3_usize; }
-                        },
-                        _ => ()
+        while reader.read_line(&mut line).is_ok() {
+            let len = line.len();
+            if len == 0_usize { break; }
+            else if len >= 8_usize {
+                if let Some(off) = line.find('#') {
+                    if off != 0_usize {
+                        /* Palette index specified, number prepended */
+                        let str_idx = unsafe { line.slice_unchecked(0_usize, off) };
+                        let parse_res : Result<usize, _>
+                            = std::str::FromStr::from_str(str_idx);
+                        match parse_res {
+                            Ok(new_idx) => {
+                                if new_idx < PALETTE_SIZE { pal_idx = new_idx * 3_usize; }
+                            },
+                            _ => ()
+                        }
                     }
-                }
-                let off = off + 1_usize;
-                if off > len - 6_usize { /* no room left for color definition after '#' char */
-                    panic!("invalid color definition: {}", line);
-                }
-                let col = line.slice_chars(off, off + RAW_COLEXPR_SIZE);
+                    let off = off + 1_usize;
+                    if off > len - 6_usize { /* no room left for color definition after '#' char */
+                        panic!("invalid color definition: {}", line);
+                    }
+                    let col = line.slice_chars(off, off + RAW_COLEXPR_SIZE);
 
-                let (r, g, b) = rgb_of_hex_triplet(col);
-                pal[pal_idx + 0_usize] = r;
-                pal[pal_idx + 1_usize] = g;
-                pal[pal_idx + 2_usize] = b;
-                pal_idx = (pal_idx + 3_usize) % PALETTE_BYTES;
+                    let (r, g, b) = rgb_of_hex_triplet(col);
+                    pal[pal_idx + 0_usize] = r;
+                    pal[pal_idx + 1_usize] = g;
+                    pal[pal_idx + 2_usize] = b;
+                    pal_idx = (pal_idx + 3_usize) % PALETTE_BYTES;
+                }
             }
+            line.truncate(0);
         };
 
         Palette { colors : pal }
