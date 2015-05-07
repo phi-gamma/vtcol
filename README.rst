@@ -88,19 +88,23 @@ Dresden, so expect the commit history to exhibit a certain lack continuity. Its
 author_ is Philipp Gesang; see the Bitbucket (author-bb_) and Github
 (author-gh_) pages.
 
-**vtcol** is redistributable under the terms of the GNU General Public License
-version 3 (exactly). The full text of the license is contained in the file
-``COPYING`` in the root of the repository. Email the author_ if you wish to use
-it under a different license, there’s a non-zero chance that you might convince
-me.
+The **vtcol** source code is available from the `canonical repository`_.
+
+**vtcol** is redistributable under the terms of the
+`GNU General Public License`_ version 3 (exactly). The full text of the
+license is contained in the file ``COPYING`` in the root of the
+repository. Email the author_ if you wish to use it under a different
+license, there’s a non-zero chance that you might convince me.
 
 Patches or suggestions welcome.
 
-:: _setcolors:  https://github.com/EvanPurkhiser/linux-vt-setcolors
-:: _Solarized:  https://FIXME
-:: _Github:     https://github.com/phi-gamma/vtcols
-:: _author:     `Philipp Gesang <mailto:phg@phi-gamma.net>`
-:: _author-bb:  https://bitbucket.org/phg
-:: _author-gh:  https://github.com/phi-gamma
-:: _Cargo:      https://github.com/rust-lang/cargo
+.. _setcolors:                  https://github.com/EvanPurkhiser/linux-vt-setcolors
+.. _Solarized:                  http://ethanschoonover.com/solarized
+.. _Github:                     https://github.com/phi-gamma/vtcols
+.. _author:                     mailto:phg@phi-gamma.net
+.. _author-bb:                  https://bitbucket.org/phg
+.. _author-gh:                  https://github.com/phi-gamma
+.. _Cargo:                      https://github.com/rust-lang/cargo
+.. _GNU General Public License: http://www.gnu.org/licenses/gpl.txt
+.. _canonical repository:       https://github.com/phi-gamma/vtcol
 
