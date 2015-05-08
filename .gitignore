@@ -2,7 +2,6 @@
 vtcol
 
 # build side-effects
-Cargo.lock
 target/*
 
 # Vim session files
