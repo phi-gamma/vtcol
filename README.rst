@@ -36,6 +36,9 @@ argument.
 
     vtcol --file ./schemes/solarized
 
+Instead of an actual scheme or file name, these parameters accept ``-``
+as an argument in order to read from ``stdin``.
+
 Also, in order to view a scheme’s definition, for instance in order to verify
 that **vtcol** parses it correctly, specify the ``--dump`` option.
 
@@ -84,9 +87,9 @@ might be achieved using more modern tools.
 About
 -----
 **vtcols** was written mostly during day-long train rides between Tübingen and
-Dresden, so expect the commit history to exhibit a certain lack continuity. Its
-author_ is Philipp Gesang; see the Bitbucket (author-bb_) and Github
-(author-gh_) pages.
+Dresden, so expect the commit history to exhibit a certain lack of
+continuity. Its author_ is Philipp Gesang; see the Bitbucket
+(author-bb_) and Github (author-gh_) pages.
 
 The **vtcol** source code is available from the `canonical repository`_.
 

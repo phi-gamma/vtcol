@@ -184,13 +184,17 @@ impl<'a> Job {
                         Job::usage(&this, opts);
                         panic!("no file name specified, aborting")
                     },
-                    Some (fname) => Scheme::Custom(Some(fname.clone()))
+                    Some (fname) =>
+                        if fname == "-" { Job::scheme_from_stdin()            }
+                        else            { Scheme::Custom(Some(fname.clone())) }
                 }
             } else {
                 match matches.opt_str("s")
                 {
-                    Some (name) => Job::pick_scheme(&name),
-                    None        => Job::scheme_from_stdin()
+                    None        => Job::scheme_from_stdin(),
+                    Some (name) =>
+                        if name == "-" { Job::scheme_from_stdin() }
+                        else           { Job::pick_scheme(&name)  }
                 }
             }; /* [let scheme] */
 
