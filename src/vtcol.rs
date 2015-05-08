@@ -10,6 +10,14 @@ use std::io::BufRead;
 
 type Fd = libc::c_int;
 
+static mut VERBOSITY : u8 = 0_u8;
+
+macro_rules! vrb {
+    ( $( $e:expr ),* ) => (
+            if unsafe { VERBOSITY } > 0_u8 { println!( $( $e ),* ) }
+        )
+}
+
 const PALETTE_SIZE  : usize = 16_usize;
 const PALETTE_BYTES : usize = PALETTE_SIZE * 3_usize; // 16 * sizeof(int)
 
@@ -143,6 +151,7 @@ impl<'a> Job {
             getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
             getopts::optopt("d", "dump", "dump predefined scheme", "NAME"),
             getopts::optopt("f", "file", "apply scheme from file", "PATH"),
+            getopts::optflag("v", "verbose", "enable verbose messages"),
             getopts::optflag("l", "list", "list available color schemes"),
             getopts::optflag("h", "help", "print this message")
         ];
@@ -152,6 +161,8 @@ impl<'a> Job {
             Ok(m) => m,
             Err(f) => panic!(f.to_string())
         };
+
+        if matches.opt_present("v") { unsafe { VERBOSITY = 1_u8; } };
 
         if matches.opt_present("l") {
             Job::schemes();
@@ -245,7 +256,7 @@ impl<'a> Job {
     fn
     dump (scm : Scheme)
     {
-        println!("Dumping color scheme {}", scm);
+        vrb!("Dumping color scheme {}", scm);
         match scm {
             Scheme::Default        => Job::dump_scheme(&DEFAULT_COLORS),
             Scheme::SolarizedDark  => Job::dump_scheme(&SOLARIZED_COLORS_DARK),
@@ -370,6 +381,7 @@ macro_rules! byte_of_hex {
     )
 }
 
+
 fn
 rgb_of_hex_triplet
     (def : &str)
@@ -481,8 +493,8 @@ impl Palette {
     from_stdin ()
         -> Palette
     {
-        println!("Go ahead, type your color scheme …");
-        println!("vtcol>");
+        vrb!("Go ahead, type your color scheme …");
+        vrb!("vtcol>");
         let mut reader = std::io::BufReader::new(std::io::stdin());
 
         /* Parse scheme file
@@ -546,9 +558,9 @@ fd_of_path
         -1 => return None,
         fd =>
         {
-            println!("  *> got fd");
+            vrb!("  *> got fd");
             if unsafe { libc::isatty(fd) } == 0 {
-                println!("  *> not a tty");
+                vrb!("  *> not a tty");
                 return None
             }
 
@@ -558,7 +570,7 @@ fd_of_path
                                      KDGKBTYPE as libc::c_int,
                                      std::mem::transmute(&mut tty_type)) };
             if res < 0 {
-                println!("  *> ioctl failed");
+                vrb!("  *> ioctl failed");
                 return None
             }
 
@@ -591,14 +603,14 @@ get_console_fd
             let mut it = CONSOLE_PATHS.iter();
             while let Some (&path) = it.next()
             {
-                println!("trying path: {:?}", path);
+                vrb!("trying path: {:?}", path);
                 let path = std::path::Path::new(path);
                 if let Some (fd) = fd_of_path(&path) {
-                    println!(" * Success!");
+                    vrb!(" * Success!");
                     return Some (fd)
                 }
             }
-            println!("could not retrieve fd for any of the search paths");
+            vrb!("could not retrieve fd for any of the search paths");
             None
         }
     }
@@ -625,7 +637,7 @@ fn
 main ()
 {
     let job = Job::new();
-    //println!("job parms: {:?}", job);
+    vrb!("job parms: {:?}", job);
     let mut pal : Palette = {
         match job.scheme {
             Scheme::Default            => Palette::new(&DEFAULT_COLORS),
@@ -638,15 +650,15 @@ main ()
                 }
         }
     };
-    println!("{}", pal);
-    //println!("{:?}", pal);
+    vrb!("Using palette:");
+    vrb!("{}", pal);
     let fd = get_console_fd(None).unwrap();
-    println!("fd: {}", fd);
+    vrb!("fd: {}", fd);
 
     if unsafe { ioctl(fd, PIO_CMAP, std::mem::transmute(&mut pal)) } < 0 {
         panic!("PIO_CMAP, ioctl failed to insert new palette")
     }
     clear_term(fd);
-    println!("terminated from job {:?}", job);
+    vrb!("terminated from job {:?}", job);
 }
 
