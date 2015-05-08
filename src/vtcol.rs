@@ -477,6 +477,8 @@ impl Palette {
     from_stdin ()
         -> Palette
     {
+        println!("Go ahead, type your color scheme …");
+        println!("vtcol>");
         let mut reader = std::io::BufReader::new(std::io::stdin());
 
         /* Parse scheme file
@@ -619,7 +621,7 @@ fn
 main ()
 {
     let job = Job::new();
-    println!("job parms: {:?}", job);
+    //println!("job parms: {:?}", job);
     let mut pal : Palette = {
         match job.scheme {
             Scheme::Default            => Palette::new(&DEFAULT_COLORS),
