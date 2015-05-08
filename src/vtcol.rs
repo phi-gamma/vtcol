@@ -601,7 +601,7 @@ get_console_fd
 fn
 write_to_term (fd : Fd, buf : &str)
 {
-    let len = buf.len() as u64;
+    let len = buf.len() as libc::size_t;
     let raw = std::ffi::CString::new(buf.as_bytes()).unwrap();
     unsafe { libc::write(fd, raw.as_ptr() as *const libc::c_void, len) };
 }
