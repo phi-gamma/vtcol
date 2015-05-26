@@ -162,6 +162,11 @@ impl<'a> Job {
             Err(f) => panic!(f.to_string())
         };
 
+        if matches.opt_present("h") {
+            Job::usage(&this, opts);
+            unsafe { exit(0) };
+        };
+
         if matches.opt_present("v") { unsafe { VERBOSITY = 1_u8; } };
 
         if matches.opt_present("l") {
@@ -590,7 +595,6 @@ get_console_fd
     {
         Some (path) =>
         {
-            //let path = std::path::Path::new(std::ffi::CString::new(path.as_bytes()).unwrap());
             let path = std::path::Path::new(path);
             match fd_of_path(&path)
             {
