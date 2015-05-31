@@ -1,0 +1,32 @@
+###############################################################################
+# Copyright 2015 Philipp Gesang
+# Example initcpio preset for vtcol
+###############################################################################
+#
+# This preset will enable the configuration at ``/mkinitcpio-vtcol.conf`` Its
+# presence allows you to invoke ``mkinitcpio -p vtcol`` and have the images
+# built corresponding to the path settings configured below. See
+#
+#   https://wiki.archlinux.org/index.php/Mkinitcpio#Image_creation_and_activation
+#
+# for details.
+
+# You’ll need to come up with a custom initcpio configuration that includes the
+# color scheme and the vtcol binary in your initramfs.
+ALL_config="/etc/mkinitcpio-vtcol.conf"
+
+# Enter the kernel image you target here. Leave it unmodified if you run the
+# stock Arch kernel.
+ALL_kver="/boot/vmlinuz-linux"
+
+# Create both an ordinary and a fallback image.
+PRESETS=("default" "fallback")
+
+# Location of the kernel image for the default ramdisk.
+default_image="/boot/initramfs-linux-vtcol.img"
+
+# Location of the kernel image for the fallback ramdisk and additional options.
+fallback_image="/boot/initramfs-linux-vtcol-fallback.img"
+fallback_options="-S autodetect"
+
+# vim:ft=sh

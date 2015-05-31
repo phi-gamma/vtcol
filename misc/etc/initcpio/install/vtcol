@@ -1,0 +1,29 @@
+#!/bin/bash
+###############################################################################
+# Copyright 2015 Philipp Gesang
+# Example mkinitcpio build hook invoking vtcol in the initramfs environment
+###############################################################################
+#
+# See mkinitcpio(8) for details.
+#
+# This does nothing besides invoking ``add_runscript`` to add the vtcol
+# initcpio hook and displaying some basic info.
+
+build () {
+    add_runscript
+}
+
+help () {
+    cat <<ENOUGH
+-------------------------------------------------------------------------------
+                                     vtcol
+-------------------------------------------------------------------------------
+
+                    Set the frambuffer console color scheme
+                    during early boot.
+
+-------------------------------------------------------------------------------
+ENOUGH
+}
+
+# vim:ft=sh:sw=4:et

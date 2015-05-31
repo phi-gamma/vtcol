@@ -1,0 +1,21 @@
+#!/usr/bin/ash
+###############################################################################
+# Copyright 2015 Philipp Gesang
+# Example mkinitcpio hook invoking vtcol in the initramfs environment
+###############################################################################
+#
+# See mkinitcpio(8) for details.
+#
+
+run_hook ()
+{
+    binary=/usr/bin/vtcol
+    scheme=solarized
+    schemedir=/usr/share/vtcol/schemes
+
+    if [ -f "${schemedir}/${scheme}" ] && [ -x "${binary}" ]; then
+        "${binary}" --scheme "${schemedir}/${scheme}"
+    fi
+}
+
+# vim:ft=sh:sw=4:et

@@ -1,5 +1,5 @@
 # build result
-vtcol
+./vtcol
 
 # build side-effects
 target/*
