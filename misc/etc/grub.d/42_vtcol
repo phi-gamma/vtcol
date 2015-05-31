@@ -1,0 +1,47 @@
+#!/bin/sh
+exec tail -n +3 $0
+###############################################################################
+# Copyright 2015 Philipp Gesang
+# Example grub menu entries for loading a vtcol-enabled ramdisk
+###############################################################################
+#
+# See grub-mkconfig(8) for details.
+#
+# This file will require adaptation depending on the local setup. It is
+# advisable that you only use this file for guidance and derive your own
+# configuration from the examples under ``/etc/grub.d/``. Especially the
+# encryption and LVM setup vary greatly with respect to the system
+# configuration. (The actual UUIDs have been replaced by some fresh ones
+# retrieved via /proc/sys/kernel/random/uuid.) YMMV.
+#
+# Always double-check the kernel and initrd lines!
+#
+
+menuentry "linux: initramfs with solarized theme" {
+    echo "Booting initramfs with solarized theme ..."
+    load_video
+    set gfxpayload=keep
+    insmod gzio
+    insmod part_gpt
+    insmod ext2
+    set root="hd0,gpt2"
+    echo "Booting the kernel ..."
+	linux	/vmlinuz-linux root=UUID=0d59f480-9149-42ef-bb0d-4dfb66bcfc76 rw cryptdevice=/dev/sda3:secret quiet
+    echo "Loading the initramfs ..."
+    initrd /initramfs-linux-vtcol.img
+}
+
+menuentry "linux/PHG Fallback" {
+    echo "Booting initramfs with solarized theme ..."
+    load_video
+    set gfxpayload=keep
+    insmod gzio
+    insmod part_gpt
+    insmod ext2
+    set root="hd0,gpt2"
+    echo "Booting the kernel ..."
+	linux	/vmlinuz-linux root=UUID=0d59f480-9149-42ef-bb0d-4dfb66bcfc76 rw cryptdevice=/dev/sda3:secret quiet
+    echo "Booting initramfs with solarized theme ..."
+    initrd /initramfs-linux-vtcol-fallback.img
+}
+
