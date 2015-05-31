@@ -31,7 +31,7 @@ menuentry "linux: initramfs with solarized theme" {
     initrd /initramfs-linux-vtcol.img
 }
 
-menuentry "linux/PHG Fallback" {
+menuentry "linux: initramfs with solarized theme / fallback" {
     echo "Booting initramfs with solarized theme ..."
     load_video
     set gfxpayload=keep
