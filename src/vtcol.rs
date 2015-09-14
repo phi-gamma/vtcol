@@ -1,12 +1,23 @@
 #![feature(libc)]
 #![feature(rustc_private)]
-#![feature(collections)]
 #![feature(convert)]
+
+/* Core appears to require some extra handholding …
+ */
+#![feature(core)]
+#![feature(core_slice_ext)]
+#![feature(core_str_ext)]
 
 extern crate libc;
 extern crate getopts;
+extern crate core;
 
 use std::io::BufRead;
+
+/* Various traits.
+ */
+use core::slice::SliceExt;
+use core::str::StrExt;
 
 type Fd = libc::c_int;
 
@@ -72,10 +83,8 @@ impl Color {
          s : &str)
         -> String
     {
-        if b {
-            return String::from_str("bright ") + s;
-        }
-        String::from_str(s)
+        if b { "bright ".to_string() + s }
+        else { s.to_string() }
     }
 
     fn
