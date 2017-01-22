@@ -1,6 +1,6 @@
 #!/usr/bin/ash
 ###############################################################################
-# Copyright 2015 Philipp Gesang
+# Copyright 2015--2017 Philipp Gesang
 # Example mkinitcpio hook invoking vtcol in the initramfs environment
 ###############################################################################
 #

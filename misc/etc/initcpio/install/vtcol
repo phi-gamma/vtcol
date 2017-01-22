@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# Copyright 2015 Philipp Gesang
+# Copyright 2015--2017 Philipp Gesang
 # Example mkinitcpio build hook invoking vtcol in the initramfs environment
 ###############################################################################
 #
