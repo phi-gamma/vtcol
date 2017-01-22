@@ -17,3 +17,6 @@ name        = "vtcol"
 test        = false
 doc         = false
 
+[dependencies]
+libc = "0.2"
+getopts = "0.2"

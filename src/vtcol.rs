@@ -1,23 +1,6 @@
-#![feature(libc)]
-#![feature(rustc_private)]
-#![feature(convert)]
-
-/* Core appears to require some extra handholding …
- */
-#![feature(core)]
-#![feature(core_slice_ext)]
-#![feature(core_str_ext)]
-
 extern crate libc;
 extern crate getopts;
 extern crate core;
-
-use std::io::BufRead;
-
-/* Various traits.
- */
-use core::slice::SliceExt;
-use core::str::StrExt;
 
 type Fd = libc::c_int;
 
@@ -156,16 +139,16 @@ impl<'a> Job {
     {
         let argv : Vec<String> = std::env::args().collect();
         let this = argv[0].clone();
-        let opts = &[
-            getopts::optopt("s", "scheme", "predefined color scheme", "NAME"),
-            getopts::optopt("d", "dump", "dump predefined scheme", "NAME"),
-            getopts::optopt("f", "file", "apply scheme from file", "PATH"),
-            getopts::optflag("v", "verbose", "enable verbose messages"),
-            getopts::optflag("l", "list", "list available color schemes"),
-            getopts::optflag("h", "help", "print this message")
-        ];
+        let mut opts = getopts::Options::new();
 
-        let matches = match getopts::getopts(argv.tail(), opts)
+        opts.optopt("s", "scheme", "predefined color scheme", "NAME");
+        opts.optopt("d", "dump", "dump predefined scheme", "NAME");
+        opts.optopt("f", "file", "apply scheme from file", "PATH");
+        opts.optflag("v", "verbose", "enable verbose messages");
+        opts.optflag("l", "list", "list available color schemes");
+        opts.optflag("h", "help", "print this message");
+
+        let matches = match opts.parse(&argv[1..])
         {
             Ok(m) => m,
             Err(f) => panic!(f.to_string())
@@ -252,10 +235,10 @@ impl<'a> Job {
     }
 
     fn
-    usage (this : &String, opts: &[getopts::OptGroup])
+    usage (this : &String, opts: getopts::Options)
     {
         let brief = format!("usage: {} [options]", this);
-        print!("{}", getopts::usage(brief.as_str(), opts));
+        print!("{}", opts.usage(&brief));
     }
 
     fn
@@ -469,7 +452,7 @@ impl Palette {
                     if off > len - 6_usize { /* no room left for color definition after '#' char */
                         panic!("invalid color definition: {}", line);
                     }
-                    let col = line.slice_chars(off, off + RAW_COLEXPR_SIZE);
+                    let col = &line[off..(off + RAW_COLEXPR_SIZE)];
 
                     let (r, g, b) = rgb_of_hex_triplet(col);
                     pal[pal_idx + 0_usize] = r;
