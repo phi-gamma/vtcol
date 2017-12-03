@@ -1,6 +1,6 @@
 [root]
 name = "vtcol"
-version = "0.42.1"
+version = "0.42.2"
 dependencies = [
  "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.19 (registry+https://github.com/rust-lang/crates.io-index)",
